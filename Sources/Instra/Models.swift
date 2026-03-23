@@ -35,6 +35,7 @@ enum TranslationTone: String, CaseIterable, Identifiable {
 enum TranslationAction: String, CaseIterable, Identifiable {
     case copy
     case show
+    case polish
 
     var id: String { rawValue }
 
@@ -44,6 +45,8 @@ enum TranslationAction: String, CaseIterable, Identifiable {
             return "Translate & Copy"
         case .show:
             return "Translate & Show"
+        case .polish:
+            return "Polish & Copy"
         }
     }
 
@@ -53,6 +56,8 @@ enum TranslationAction: String, CaseIterable, Identifiable {
             return "Last translation copied to clipboard."
         case .show:
             return "Last translation shown in reading panel."
+        case .polish:
+            return "Polished text copied to clipboard."
         }
     }
 
@@ -62,6 +67,8 @@ enum TranslationAction: String, CaseIterable, Identifiable {
             return 1
         case .show:
             return 2
+        case .polish:
+            return 3
         }
     }
 }
@@ -71,6 +78,7 @@ enum HotKeyPreset: String, CaseIterable, Identifiable {
     case controlCommandS
     case controlOptionT
     case controlCommandE
+    case controlCommandP
 
     var id: String { rawValue }
 
@@ -84,6 +92,8 @@ enum HotKeyPreset: String, CaseIterable, Identifiable {
             return "Control + Option + T"
         case .controlCommandE:
             return "Control + Command + E"
+        case .controlCommandP:
+            return "Control + Command + P"
         }
     }
 
@@ -95,32 +105,26 @@ enum HotKeyPreset: String, CaseIterable, Identifiable {
             return UInt32(kVK_ANSI_S)
         case .controlCommandE:
             return UInt32(kVK_ANSI_E)
+        case .controlCommandP:
+            return UInt32(kVK_ANSI_P)
         }
     }
 
     var carbonModifiers: UInt32 {
         switch self {
-        case .controlCommandT:
-            return UInt32(controlKey | cmdKey)
-        case .controlCommandS:
+        case .controlCommandT, .controlCommandS, .controlCommandE, .controlCommandP:
             return UInt32(controlKey | cmdKey)
         case .controlOptionT:
             return UInt32(controlKey | optionKey)
-        case .controlCommandE:
-            return UInt32(controlKey | cmdKey)
         }
     }
 
     var eventModifiers: NSEvent.ModifierFlags {
         switch self {
-        case .controlCommandT:
-            return [.control, .command]
-        case .controlCommandS:
+        case .controlCommandT, .controlCommandS, .controlCommandE, .controlCommandP:
             return [.control, .command]
         case .controlOptionT:
             return [.control, .option]
-        case .controlCommandE:
-            return [.control, .command]
         }
     }
 }

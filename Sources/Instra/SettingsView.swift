@@ -11,7 +11,7 @@ struct SettingsView: View {
             advancedSection
         }
         .formStyle(.grouped)
-        .frame(width: 520, height: 560)
+        .frame(width: 520, height: 620)
         .padding(20)
     }
 
@@ -83,6 +83,11 @@ struct SettingsView: View {
                     title: TranslationAction.show.title,
                     selection: $settings.showHotKeyPreset,
                     action: .show
+                )
+                hotKeyPicker(
+                    title: TranslationAction.polish.title,
+                    selection: $settings.polishHotKeyPreset,
+                    action: .polish
                 )
             }
             .padding(.vertical, 4)

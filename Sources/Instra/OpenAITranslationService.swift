@@ -7,7 +7,7 @@ struct OpenAITranslationService {
         self.session = session
     }
 
-    func translate(_ sourceText: String, configuration: TranslationConfiguration) async throws -> String {
+    func translate(_ sourceText: String, configuration: TranslationConfiguration, action: TranslationAction = .copy) async throws -> String {
         let envelope = WhitespaceEnvelope.extract(from: sourceText)
         let body = envelope.body.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -15,9 +15,20 @@ struct OpenAITranslationService {
             throw TranslationPipelineError.emptySelection
         }
 
-        let requestBody = ResponsesRequest(
-            model: configuration.model,
-            instructions: """
+        let instructions: String
+        switch action {
+        case .polish:
+            instructions = """
+            You are a writing assistant.
+            Rewrite the text to be grammatically correct, natural, and idiomatic — as a native speaker would write it.
+            Preserve the original meaning, tone, and intent.
+            Keep the same language as the input (do not translate).
+            Return only the rewritten text.
+            Do not add preambles, labels, quotes, explanations, or commentary.
+            Preserve paragraph structure, line breaks, list formatting, URLs, emojis, and obvious proper nouns.
+            """
+        case .copy, .show:
+            instructions = """
             You are a translation engine for personal communication.
             The user works between \(configuration.languageA) and \(configuration.languageB).
             Detect which language the input is in and translate it to the other one.
@@ -25,7 +36,12 @@ struct OpenAITranslationService {
             Do not add preambles, labels, quotes, explanations, or commentary.
             Preserve paragraph structure, line breaks, list formatting, URLs, emojis, and obvious proper nouns.
             Desired tone: \(configuration.tone.promptDescriptor)
-            """,
+            """
+        }
+
+        let requestBody = ResponsesRequest(
+            model: configuration.model,
+            instructions: instructions,
             input: body
         )
 

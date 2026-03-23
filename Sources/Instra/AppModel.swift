@@ -56,13 +56,15 @@ final class AppModel: ObservableObject {
                     await self?.translateAndCopy()
                 case .show:
                     await self?.translateAndShow()
+                case .polish:
+                    await self?.polishAndCopy()
                 }
             }
         }
 
-        Publishers.CombineLatest(settings.$copyHotKeyPreset, settings.$showHotKeyPreset)
+        Publishers.CombineLatest3(settings.$copyHotKeyPreset, settings.$showHotKeyPreset, settings.$polishHotKeyPreset)
             .dropFirst()
-            .sink { [weak self] _, _ in
+            .sink { [weak self] _, _, _ in
                 self?.applyHotKeyRegistrations(showFeedback: true)
             }
             .store(in: &cancellables)
@@ -100,6 +102,10 @@ final class AppModel: ObservableObject {
 
     var showHotKeyDescription: String {
         settings.showHotKeyPreset.title
+    }
+
+    var polishHotKeyDescription: String {
+        settings.polishHotKeyPreset.title
     }
 
     var needsSetupAttention: Bool {
@@ -151,6 +157,10 @@ final class AppModel: ObservableObject {
         await performTranslation(for: .show)
     }
 
+    func polishAndCopy() async {
+        await performTranslation(for: .polish)
+    }
+
     func translateSelection() async {
         await translateAndCopy()
     }
@@ -182,15 +192,16 @@ final class AppModel: ObservableObject {
         do {
             await prepareSelectionCaptureContext()
             let selectedText = try await selectionCaptureService.captureSelectedText()
-            statusMessage = "Translating…"
-            feedbackCenter.showWorking("Translating…")
+            let workingMessage = action == .polish ? "Polishing…" : "Translating…"
+            statusMessage = workingMessage
+            feedbackCenter.showWorking(workingMessage)
 
-            let translatedText = try await translationService.translate(selectedText, configuration: configuration)
+            let translatedText = try await translationService.translate(selectedText, configuration: configuration, action: action)
             updateTranslatedPreview(with: translatedText)
 
             switch action {
-            case .copy:
-                try completeCopyAction(with: translatedText)
+            case .copy, .polish:
+                try completeCopyAction(with: translatedText, action: action)
             case .show:
                 showReadingPanel(with: translatedText)
             }
@@ -301,15 +312,16 @@ final class AppModel: ObservableObject {
         }
     }
 
-    private func completeCopyAction(with translatedText: String) throws {
+    private func completeCopyAction(with translatedText: String, action: TranslationAction = .copy) throws {
         guard clipboardService.write(translatedText) else {
             throw TranslationPipelineError.clipboardWriteFailed
         }
 
+        let feedbackMessage = action == .polish ? "Polished text is ready to paste." : "Translated text is ready to paste."
         lastFailureMessage = nil
-        lastSuccessMessage = TranslationAction.copy.successStatusMessage
-        statusMessage = TranslationAction.copy.successStatusMessage
-        feedbackCenter.showSuccess("Translated text is ready to paste.")
+        lastSuccessMessage = action.successStatusMessage
+        statusMessage = action.successStatusMessage
+        feedbackCenter.showSuccess(feedbackMessage)
     }
 
     private func showReadingPanel(with translatedText: String) {

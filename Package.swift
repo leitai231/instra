@@ -17,5 +17,10 @@ let package = Package(
             name: "Instra",
             path: "Sources/Instra"
         ),
+        .testTarget(
+            name: "InstraTests",
+            dependencies: ["Instra"],
+            path: "Tests/InstraTests"
+        ),
     ]
 )

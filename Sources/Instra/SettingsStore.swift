@@ -23,6 +23,10 @@ final class SettingsStore: ObservableObject {
         didSet { defaults.set(showHotKeyPreset.rawValue, forKey: Keys.showHotKeyPreset) }
     }
 
+    @Published var polishHotKeyPreset: HotKeyPreset {
+        didSet { defaults.set(polishHotKeyPreset.rawValue, forKey: Keys.polishHotKeyPreset) }
+    }
+
     @Published var openAIModel: String {
         didSet { defaults.set(openAIModel, forKey: Keys.openAIModel) }
     }
@@ -51,6 +55,7 @@ final class SettingsStore: ObservableObject {
         let legacyHotKeyPreset = defaults.string(forKey: Keys.legacyHotKeyPreset) ?? ""
         copyHotKeyPreset = HotKeyPreset(rawValue: defaults.string(forKey: Keys.copyHotKeyPreset) ?? legacyHotKeyPreset) ?? .controlCommandT
         showHotKeyPreset = HotKeyPreset(rawValue: defaults.string(forKey: Keys.showHotKeyPreset) ?? "") ?? .controlCommandS
+        polishHotKeyPreset = HotKeyPreset(rawValue: defaults.string(forKey: Keys.polishHotKeyPreset) ?? "") ?? .controlCommandP
         openAIModel = defaults.string(forKey: Keys.openAIModel) ?? "gpt-4.1-mini"
         apiKey = (try? keychain.load(service: keychainService, account: keychainAccount)) ?? ""
     }
@@ -74,11 +79,19 @@ final class SettingsStore: ObservableObject {
     }
 
     var hotKeyConflictMessage: String? {
-        guard copyHotKeyPreset == showHotKeyPreset else {
-            return nil
+        let presets = [
+            (TranslationAction.copy, copyHotKeyPreset),
+            (TranslationAction.show, showHotKeyPreset),
+            (TranslationAction.polish, polishHotKeyPreset),
+        ]
+        for i in presets.indices {
+            for j in (i + 1)..<presets.count {
+                if presets[i].1 == presets[j].1 {
+                    return "\(presets[i].0.title) and \(presets[j].0.title) cannot use the same shortcut."
+                }
+            }
         }
-
-        return "Translate & Copy and Translate & Show cannot use the same shortcut."
+        return nil
     }
 
     func hotKeyPreset(for action: TranslationAction) -> HotKeyPreset {
@@ -87,6 +100,8 @@ final class SettingsStore: ObservableObject {
             return copyHotKeyPreset
         case .show:
             return showHotKeyPreset
+        case .polish:
+            return polishHotKeyPreset
         }
     }
 
@@ -111,6 +126,7 @@ final class SettingsStore: ObservableObject {
         static let copyHotKeyPreset = "settings.copyHotKeyPreset"
         static let showHotKeyPreset = "settings.showHotKeyPreset"
         static let legacyHotKeyPreset = "settings.hotKeyPreset"
+        static let polishHotKeyPreset = "settings.polishHotKeyPreset"
         static let openAIModel = "settings.openAIModel"
     }
 }

@@ -70,6 +70,13 @@ struct MenuBarView: View {
             .disabled(model.isBusy)
 
             Button {
+                Task { await model.polishAndCopy() }
+            } label: {
+                Label(model.isBusy ? "Polishing…" : "Polish & Copy", systemImage: model.isBusy ? "arrow.triangle.2.circlepath" : "sparkles")
+            }
+            .disabled(model.isBusy)
+
+            Button {
                 model.showSettings()
             } label: {
                 Label(model.needsSetupAttention ? "Complete Setup" : "Settings", systemImage: "gearshape")
@@ -101,6 +108,9 @@ struct MenuBarView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             Text("Translate & Show: \(model.showHotKeyDescription)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text("Polish & Copy: \(model.polishHotKeyDescription)")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

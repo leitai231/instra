@@ -6,6 +6,7 @@ enum TranslationTone: String, CaseIterable, Identifiable {
     case natural
     case polite
     case concise
+    case social
 
     var id: String { rawValue }
 
@@ -17,6 +18,8 @@ enum TranslationTone: String, CaseIterable, Identifiable {
             return "Polite"
         case .concise:
             return "Concise"
+        case .social:
+            return "Social"
         }
     }
 
@@ -28,6 +31,8 @@ enum TranslationTone: String, CaseIterable, Identifiable {
             return "Warm, polite language that still feels human and not overly formal."
         case .concise:
             return "Short, direct language with minimal filler."
+        case .social:
+            return "Casual, fun, and conversational — like chatting with a close friend on social media. Use informal expressions, slang where appropriate, and a lighthearted tone suitable for tweets or social posts."
         }
     }
 }
